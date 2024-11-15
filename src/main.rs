@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 #[derive(Debug, Clone, PartialEq)]
 struct FieldElement {
@@ -26,6 +26,18 @@ impl Add for FieldElement {
         
     }
 }
+
+impl Sub for FieldElement {
+    type Output = FieldElement;
+
+    fn sub(self, other:FieldElement) -> FieldElement {
+        if self.prime != other.prime {
+            panic!("Can't subtract numbers in different fields");
+        }
+        FieldElement::new((self.value - other.value + self.prime) % self.prime, self.prime )
+    }
+}
+
 fn main() {
     let a = FieldElement::new(7,13);
     let b = FieldElement::new(10,13);
@@ -37,7 +49,7 @@ fn main() {
 mod tests {
 
     use super::*;
-
+    // Tests for New FF
     #[test]
     fn test_field_element_new_valid() {
         let fe = FieldElement::new(7,13);
@@ -50,7 +62,7 @@ mod tests {
     fn test_field_invalid_value() {
         FieldElement::new(13,13);
     }
-
+    // Tests for FF Addition
     #[test]
     fn test_field_elements_addition() {
         let fe1 = FieldElement::new(7,13);
@@ -64,5 +76,20 @@ mod tests {
         let fe1 = FieldElement::new(7,13);
         let fe2 = FieldElement::new(8,12);
         let _ = fe1.add(fe2);
+    }
+
+    // Tests for FF substraction
+    #[test]
+    fn test_field_elements_subtraction() {
+        let fe1 = FieldElement::new(7,13);
+        let fe2 = FieldElement::new(6,13);
+        assert_eq!(fe1.sub(fe2), FieldElement::new(1, 13));
+    }
+    #[test]
+    #[should_panic(expected = "Can't subtract numbers in different fields")]
+    fn test_field_element_subtraction_different_fields() {
+        let fe1 = FieldElement::new(7,13);
+        let fe2 = FieldElement::new(6,14);
+        let _ = fe1.sub(fe2);
     }
 }
